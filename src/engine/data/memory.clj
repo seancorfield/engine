@@ -19,7 +19,7 @@
     (get-in @data args))
 
   c/Committable
-  (delete! [this key _ _]
+  (delete! [this _ _ key]
     ;; we only support top-level key deletion
     (swap! data dissoc key))
 
@@ -35,6 +35,8 @@
   (update! [this key value pk v]
     (throw (ex-info "in-memory data store only supports insert!"
                     {:key key :value value :pk pk :v v})))
+
+  (key-generator [this _] nil)
 
   (primary-key [this _] nil))
 

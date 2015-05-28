@@ -13,6 +13,7 @@
   (delete! [this table pk v])
   (insert! [this table row])
   (update! [this table row pk v])
+  (key-generator [this table])
   (primary-key [this table]))
 
 (defn lookup-keys
@@ -36,7 +37,8 @@
   [data-sources updates]
   (reduce (fn [env [key dsn table row pk key-gen delete-key]]
             (let [ds (i/lookup-dsn data-sources dsn)
-                  pk (or pk (primary-key ds table))]
+                  pk (or pk (primary-key ds table))
+                  key-gen (or key-gen (key-generator ds table) identity)]
               (if delete-key
                 (do
                   (delete! ds table pk delete-key)

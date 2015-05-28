@@ -86,23 +86,23 @@
 (defn transform [this f & args] (-transform this f args))
 
 (defn update
-  ([this table row] (-update this nil nil table row nil identity))
-  ([this dsn table row] (-update this nil dsn table row nil identity))
-  ([this key dsn table row] (-update this key dsn table row nil identity))
-  ([this key dsn table row pk] (-update this key dsn table row pk identity))
+  ([this table row] (-update this nil nil table row nil nil))
+  ([this dsn table row] (-update this nil dsn table row nil nil))
+  ([this key dsn table row] (-update this key dsn table row nil nil))
+  ([this key dsn table row pk] (-update this key dsn table row pk nil))
   ([this key dsn table row pk key-gen] (-update this key dsn table row pk key-gen)))
 
 (defn delete
-  ([this table] (-delete this nil table nil nil))
+  ([this keys] (-delete this nil nil nil keys))
   ([this table keys] (-delete this nil table nil keys))
   ([this dsn table keys] (-delete this dsn table nil keys))
   ([this dsn table pk keys] (-delete this dsn table pk keys)))
 
 (defn update-on-failure
-  ([this table row] (-update-on-failure this nil nil table row nil identity))
-  ([this dsn table row] (-update-on-failure this nil dsn table row nil identity))
-  ([this key dsn table row] (-update-on-failure this key dsn table row nil identity))
-  ([this key dsn table row pk] (-update-on-failure this key dsn table row pk identity))
+  ([this table row] (-update-on-failure this nil nil table row nil nil))
+  ([this dsn table row] (-update-on-failure this nil dsn table row nil nil))
+  ([this key dsn table row] (-update-on-failure this key dsn table row nil nil))
+  ([this key dsn table row pk] (-update-on-failure this key dsn table row pk nil))
   ([this key dsn table row pk key-gen] (-update-on-failure this key dsn table row pk key-gen)))
 
 (defn delete-on-failure
