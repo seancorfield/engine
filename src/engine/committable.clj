@@ -7,8 +7,10 @@
   (:require [engine.input :as i]))
 
 (defprotocol Committable
-  "An output data source is committable. You can insert! and update!
+  "An output data source is committable. You can delete! (by key),
+  insert! new data (rows), and update! existing data (rows by key),
   and it knows how to get the primary key for any given table."
+  (delete! [this table pk v])
   (insert! [this table row])
   (update! [this table row pk v])
   (primary-key [this table]))
@@ -32,16 +34,20 @@
   is in effect and will attempt to lookup foreign keys in the
   environment, based on any previously seen keys for updates."
   [data-sources updates]
-  (reduce (fn [env [key dsn table row pk key-gen]]
+  (reduce (fn [env [key dsn table row pk key-gen delete-key]]
             (let [ds (i/lookup-dsn data-sources dsn)
                   pk (or pk (primary-key ds table))]
-              (if-let [pkv (and pk (map? row) (get row pk))]
+              (if delete-key
                 (do
-                  (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
-                  (cond-> env key (assoc key pkv)))
-                (let [new-row (key-gen row)
-                      new-pk (insert! ds table (cond-> new-row
-                                                       pk (lookup-keys env)))]
-                  (cond-> env key (assoc key new-pk))))))
+                  (delete! ds table pk delete-key)
+                  env)
+                (if-let [pkv (and pk (map? row) (get row pk))]
+                  (do
+                    (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
+                    (cond-> env key (assoc key pkv)))
+                  (let [new-row (key-gen row)
+                        new-pk (insert! ds table (cond-> new-row
+                                                         pk (lookup-keys env)))]
+                    (cond-> env key (assoc key new-pk)))))))
           {}
           updates))

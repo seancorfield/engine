@@ -5,7 +5,8 @@
 
   Querying: (e/query app :path :to :data)
   Updating: (e/update app [:path :to :data] new-value)
-  Shortcut: (e/update app :key new-value)"
+  Shortcut: (e/update app :key new-value)
+  Deleting: (e/delete app :key)"
   (:require [engine.committable :as c]
             [engine.queryable :as q]))
 
@@ -18,6 +19,10 @@
     (get-in @data args))
 
   c/Committable
+  (delete! [this key _ _]
+    ;; we only support top-level key deletion
+    (swap! data dissoc key))
+
   (insert! [this key value]
     (if (vector? key)
       (swap! data update-in key (constantly value))

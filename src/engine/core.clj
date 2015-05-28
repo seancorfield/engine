@@ -13,9 +13,11 @@
   (return [this value])
   (-transform [this f args])
   (-update [this key dsn table row pk key-gen])
+  (-delete [this dsn table pk keys])
   (fail [this ex])
   (commit-and-fail [this ex])
   (-update-on-failure [this key dsn table row pk key-gen])
+  (-delete-on-failure [this dsn table pk keys])
   (recover [this ex-class f]))
 
 (defrecord Engine [ds result updates failure fail-updates]
@@ -46,6 +48,12 @@
                    conj [(and key (keyword (name key)))
                          (and (i/lookup-dsn ds dsn) dsn)
                          table row pk key-gen])))
+  (-delete [this dsn table pk keys]
+    (if failure this
+        (update-in this [:updates]
+                   conj [nil
+                         (and (i/lookup-dsn ds dsn) dsn)
+                         table nil pk nil keys])))
   ;; sad path workflow
   (fail [this ex]
     ;; retain original failure
@@ -59,6 +67,12 @@
                conj [(and key (keyword (name key)))
                      (and (i/lookup-dsn ds dsn) dsn)
                      table row pk key-gen]))
+  (-delete [this dsn table pk keys]
+    (if failure this
+        (update-in this [:fail-updates]
+                   conj [nil
+                         (and (i/lookup-dsn ds dsn) dsn)
+                         table nil pk nil keys])))
   (recover [this ex-class f]
     ;; perform recovery if failed in that way
     (if (and failure (instance? ex-class failure))
@@ -78,12 +92,24 @@
   ([this key dsn table row pk] (-update this key dsn table row pk identity))
   ([this key dsn table row pk key-gen] (-update this key dsn table row pk key-gen)))
 
+(defn delete
+  ([this table] (-delete this nil table nil nil))
+  ([this table keys] (-delete this nil table nil keys))
+  ([this dsn table keys] (-delete this dsn table nil keys))
+  ([this dsn table pk keys] (-delete this dsn table pk keys)))
+
 (defn update-on-failure
   ([this table row] (-update-on-failure this nil nil table row nil identity))
   ([this dsn table row] (-update-on-failure this nil dsn table row nil identity))
   ([this key dsn table row] (-update-on-failure this key dsn table row nil identity))
   ([this key dsn table row pk] (-update-on-failure this key dsn table row pk identity))
   ([this key dsn table row pk key-gen] (-update-on-failure this key dsn table row pk key-gen)))
+
+(defn delete-on-failure
+  ([this table] (-delete-on-failure this nil table nil nil))
+  ([this table keys] (-delete-on-failure this nil table nil keys))
+  ([this dsn table keys] (-delete-on-failure this dsn table nil keys))
+  ([this dsn table pk keys] (-delete-on-failure this dsn table pk keys)))
 
 ;; main API function
 

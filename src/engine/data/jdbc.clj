@@ -2,7 +2,8 @@
 
 (ns engine.data.jdbc
   "Optional integration with clojure.java.jdbc"
-  (:require [clojure.java.jdbc :as sql]
+  (:require [clojure.string :as str]
+            [clojure.java.jdbc :as sql]
             [engine.committable :as c]
             [engine.queryable :as q]))
 
@@ -13,6 +14,20 @@
     (apply sql/query db-spec args))
 
   c/Committable
+  (delete! [this table pk v]
+    (if pk
+      (if (set? v)
+        (let [n (count v)
+              ? (str/join "," (repeat n "?"))]
+          (sql/delete! db-spec table
+                       (apply conj [(str (name pk) " IN (" ? ")")] v)))
+        (sql/delete! db-spec table
+                     (if (nil? v)
+                       [(str (name pk) " IS NULL")]
+                       [(str (name pk) " = ?") v])))
+      (throw (ex-info "jdbc data store requires key for delete!"
+                      {:table table :pk pk :v v}))))
+
   (insert! [this table row]
     (-> (sql/insert! db-spec table row)
         ;; assume result set of generated keys
