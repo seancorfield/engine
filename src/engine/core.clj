@@ -67,7 +67,7 @@
                conj [(and key (keyword (name key)))
                      (and (i/lookup-dsn ds dsn) dsn)
                      table row pk key-gen]))
-  (-delete [this dsn table pk keys]
+  (-delete-on-failure [this dsn table pk keys]
     (if failure this
         (update-in this [:fail-updates]
                    conj [nil
