@@ -24,18 +24,24 @@
 (defn commit!
   "Commit all of the given updates to the supplied data sources.
   Applies the updates in order, building the key lookup environment
-  as it goes, and replacing key references (columns with keyword values)."
+  as it goes, and replacing key references (columns with keyword values).
+  Although we generally assume tables, and rows, the table is really
+  just an arbitrary key into the data store and the row could be any
+  type of value. If the row is not a map, we only ever do insert!
+  If primary-key returns a non-nil value, we assume key generation
+  is in effect and will attempt to lookup foreign keys in the
+  environment, based on any previously seen keys for updates."
   [data-sources updates]
   (reduce (fn [env [key dsn table row pk key-gen]]
             (let [ds (i/lookup-dsn data-sources dsn)
-                  pk (or pk (primary-key ds table))
-                  row (lookup-keys row env)]
-              (if-let [pkv (get row pk)]
+                  pk (or pk (primary-key ds table))]
+              (if-let [pkv (and pk (map? row) (get row pk))]
                 (do
-                  (update! ds table (dissoc row pk) pk pkv)
+                  (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
                   (cond-> env key (assoc key pkv)))
                 (let [new-row (key-gen row)
-                      new-pk (insert! ds table row)]
+                      new-pk (insert! ds table (cond-> new-row
+                                                       pk (lookup-keys env)))]
                   (cond-> env key (assoc key new-pk))))))
           {}
           updates))

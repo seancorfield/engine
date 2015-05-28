@@ -9,7 +9,7 @@
 (defrecord JDBCDataStore [db-spec pk-map default-pk]
 
   q/Queryable
-  (-query [this args]
+  (query [this args]
     (apply sql/query db-spec args))
 
   c/Committable

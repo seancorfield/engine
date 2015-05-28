@@ -24,8 +24,8 @@
   (-query [this args]
     (if (and (keyword? (first args))
              (< 1 (count args)))
-      (q/-query (i/lookup-dsn ds (first args)) (rest args))
-      (q/-query (i/lookup-dsn ds nil) args)))
+      (q/query (i/lookup-dsn ds (first args)) (rest args))
+      (q/query (i/lookup-dsn ds nil) args)))
   ;; commit! can always be done regardless of state
   (commit! [this]
     (if failure
