@@ -6,7 +6,7 @@ workflow across your application.
 
 ## Usage
 
-    (require '[engine.flow :as e])
+    (require '[engine.core :as e])
     (require '[engine.data.jdbc :as j])
     ;; create a data source for the app
     (def ds (j/jdbc-data-source
@@ -20,7 +20,7 @@ workflow across your application.
         ;; indicate intended result
         (e/return 42)
         ;; commit changes
-        (e/commit))
+        (e/commit!))
     ;; returns the result and applies the updates
 
 All of the business logic up to the `commit` call is pure.
