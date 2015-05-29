@@ -76,11 +76,10 @@
                      (and (i/lookup-dsn ds dsn) dsn)
                      table row pk key-gen]))
   (-delete-on-failure [this dsn table pk keys]
-    (if failure this
-        (update-in this [:fail-updates]
-                   conj [nil
-                         (and (i/lookup-dsn ds dsn) dsn)
-                         table nil pk nil keys])))
+    (update-in this [:fail-updates]
+               conj [nil
+                     (and (i/lookup-dsn ds dsn) dsn)
+                     table nil pk nil keys]))
   (recover [this ex-class f]
     ;; perform recovery if failed in that way
     (if (and failure (instance? ex-class failure))
