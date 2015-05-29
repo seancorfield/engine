@@ -12,6 +12,7 @@
   (commit! [this])
   (return [this value])
   (-transform [this f args])
+  (-condf [this pred-fn true-fn false-fn fail-fn])
   (-update [this key dsn table row pk key-gen])
   (-delete [this dsn table pk keys])
   (fail [this ex])
@@ -42,6 +43,13 @@
     (if failure this (assoc this :result value)))
   (-transform [this f args]
     (if failure this (apply update-in this [:result] f args)))
+  (-condf [this pred-fn true-fn false-fn fail-fn]
+    (cond (and failure
+               fail-fn)    (fail-fn this)
+          failure          this
+          (pred-dn result) (true-fn this)
+          false-fn         (false-fn this)
+          :else            this))
   (-update [this key dsn table row pk key-gen]
     (if failure this
         (update-in this [:updates]
@@ -84,6 +92,11 @@
 (defn query [this & args] (-query this args))
 
 (defn transform [this f & args] (-transform this f args))
+
+(defn condf
+  ([this pred-fn true-fn] (-condf pred-fn true-fn nil nil))
+  ([this pred-fn true-fn false-fn] (-condf pred-fn true-fn false-fn nil))
+  ([this pred-fn true-fn false-fn fail-fn] (-condf pred-fn true-fn false-fn fail-fn)))
 
 (defn update
   ([this table row] (-update this nil nil table row nil nil))
