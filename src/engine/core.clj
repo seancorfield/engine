@@ -2,6 +2,7 @@
 
 (ns engine.core
   "Main API for workflow engine library."
+  (:refer-clojure :exclude [update])
   (:require [engine.committable :as c]
             [engine.input :as i]
             [engine.queryable :as q]))
@@ -47,7 +48,7 @@
     (cond (and failure
                fail-fn)    (fail-fn this)
           failure          this
-          (pred-dn result) (true-fn this)
+          (pred-fn result) (true-fn this)
           false-fn         (false-fn this)
           :else            this))
   (-update [this key dsn table row pk key-gen]
@@ -93,9 +94,9 @@
 (defn transform [this f & args] (-transform this f args))
 
 (defn condf
-  ([this pred-fn true-fn] (-condf pred-fn true-fn nil nil))
-  ([this pred-fn true-fn false-fn] (-condf pred-fn true-fn false-fn nil))
-  ([this pred-fn true-fn false-fn fail-fn] (-condf pred-fn true-fn false-fn fail-fn)))
+  ([this pred-fn true-fn] (-condf this pred-fn true-fn nil nil))
+  ([this pred-fn true-fn false-fn] (-condf this pred-fn true-fn false-fn nil))
+  ([this pred-fn true-fn false-fn fail-fn] (-condf this pred-fn true-fn false-fn fail-fn)))
 
 (defn update
   ([this table row] (-update this nil nil table row nil nil))
