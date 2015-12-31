@@ -90,7 +90,7 @@ Here's an example flow with a conditional failure in the middle:
         (e/update-on-failure :logtable {:message "We failed!"})
         ...
         ;; later on we may fail
-        (e/condf (< value threshold)
+        (e/condf #(< (e/query % :value) threshold)
           safe-process ;; called on app
           #(e/fail % (ex-info "Too big!" {:value value})))
         ;; we can continue here because the operations know
