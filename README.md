@@ -1,5 +1,7 @@
 # engine
 
+[![Join the chat at https://gitter.im/seancorfield/engine](https://badges.gitter.im/seancorfield/engine.svg)](https://gitter.im/seancorfield/engine?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 A Clojure library designed to help separate business logic from
 persistence by maintaining a strict query -> logic -> updates
 workflow across your application.
