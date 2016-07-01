@@ -136,6 +136,15 @@
   ([this pred-fn true-fn false-fn] (-condf this pred-fn true-fn false-fn nil))
   ([this pred-fn true-fn false-fn fail-fn] (-condf this pred-fn true-fn false-fn fail-fn)))
 
+(defmacro condf->
+  "Threaded version of condf."
+  ([this pred-x true-x]
+   `(condf ~this #(-> % ~pred-x) #(-> % ~true-x)))
+  ([this pred-x true-x false-x]
+   `(condf ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % ~false-x)))
+  ([this pred-x true-x false-x fail-x]
+   `(condf ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % ~false-x) #(-> % ~fail-x))))
+
 (defn update
   "Provide defaults for key (label), dsn, pk, and key-gen."
   ([this table row] (-update this nil nil table row nil nil))
