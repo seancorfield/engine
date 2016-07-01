@@ -124,6 +124,6 @@ that returns an updated _engine_.
 
 ## License
 
-Copyright © 2015 Sean Corfield
+Copyright © 2015-2016 Sean Corfield
 
 Distributed under the Eclipse Public License version 1.0.

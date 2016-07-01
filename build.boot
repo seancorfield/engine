@@ -1,8 +1,7 @@
-(def version "0.1.0-SNAPSHOT")
+(def version "0.1.0-alpha1")
 
 (set-env! :resource-paths #{"src"}
-          :dependencies   '[[org.clojure/clojure "1.7.0" :scope "provided"]
-                            [org.clojure/java.jdbc "0.4.2" :scope "test"]
+          :dependencies   '[[org.clojure/java.jdbc "0.6.1" :scope "test"]
                             [mysql/mysql-connector-java "5.1.36" :scope "test"]])
 
 (task-options!
@@ -18,5 +17,5 @@
   (comp (pom) (jar) (install)))
 
 (deftask deploy
-  [g gpg-sign bool "Sign jar using GPG private key."]
-  (comp (pom) (jar) (apply push (mapcat identity *opts*))))
+  []
+  (comp (pom) (jar) (push)))

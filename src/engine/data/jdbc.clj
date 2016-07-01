@@ -1,4 +1,4 @@
-;; copyright (c) 2015 Sean Corfield
+;; copyright (c) 2015-2016 Sean Corfield
 
 (ns engine.data.jdbc
   "Optional integration with clojure.java.jdbc"
@@ -48,7 +48,10 @@
       default-pk)))
 
 (defn jdbc-data-source
-
+  "Given a database spec, return a Queryable/Committable
+  JDBC-based datasource. Note that it only supports a
+  subset of java.jdbc's full API (in particular, no
+  support for options)."
   ([db-spec]
    (jdbc-data-source db-spec {} :id nil))
 

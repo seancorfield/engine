@@ -1,4 +1,4 @@
-;; copyright (c) 2015 Sean Corfield
+;; copyright (c) 2015-2016 Sean Corfield
 
 (ns engine.data.memory
   "Simple in-memory data store for testing etc.
@@ -40,4 +40,7 @@
 
   (primary-key [this _] nil))
 
-(defn in-memory-data-source [] (->InMemoryDataStore (atom {})))
+(defn in-memory-data-source
+  "Return a Queryable/Committable key-based datasource."
+  ([]     (in-memory-data-source {}))
+  ([seed] (->InMemoryDataStore (atom seed))))
