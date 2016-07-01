@@ -15,6 +15,9 @@
     "Commit updates/deletes and yield the returned value.")
   (return [this value]
     "Set/replace the result this engine will return on a commit!")
+  (state [this]
+    "Yield the current state -- the result that would be returned.
+    If the engine is in failure mode, return nil.")
   (-transform [this f args]
     "Transform the result this engine will return on a commit!
     This is a pure transform, based on just the result value.")
@@ -62,6 +65,8 @@
   ;; happy path workflow
   (return [this value]
     (if failure this (assoc this :result value)))
+  (state [this]
+    (when-not failure result))
   (-transform [this f args]
     (if failure this (apply update-in this [:result] f args)))
   (-condf [this pred-fn true-fn false-fn fail-fn]
