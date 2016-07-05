@@ -49,10 +49,11 @@
   EngineFlow
   ;; querying can always be done regardless of state
   (-query [this args]
-    (if (and (keyword? (first args))
-             (< 1 (count args)))
-      (q/query (i/lookup-dsn ds (first args)) (rest args))
-      (q/query (i/lookup-dsn ds nil) args)))
+    (if (and (keyword? (first args)) (< 1 (count args)))
+      (if-let [dsn (i/find-dsn ds (first args))]
+        (q/query dsn (rest args))
+        (q/query (i/get-dsn ds nil) args))
+      (q/query (i/get-dsn ds nil) args)))
   ;; commit! can always be done regardless of state
   (commit! [this]
     (if failure
@@ -80,13 +81,13 @@
     (if failure this
         (update-in this [:updates]
                    conj [(and key (keyword (name key)))
-                         (and (i/lookup-dsn ds dsn) dsn)
+                         (and (i/get-dsn ds dsn) dsn)
                          table row pk key-gen])))
   (-delete [this dsn table pk keys]
     (if failure this
         (update-in this [:updates]
                    conj [nil
-                         (and (i/lookup-dsn ds dsn) dsn)
+                         (and (i/get-dsn ds dsn) dsn)
                          table nil pk nil keys])))
   ;; sad path workflow
   (fail [this ex]
@@ -99,12 +100,12 @@
     ;; actions if anything fails
     (update-in this [:fail-updates]
                conj [(and key (keyword (name key)))
-                     (and (i/lookup-dsn ds dsn) dsn)
+                     (and (i/get-dsn ds dsn) dsn)
                      table row pk key-gen]))
   (-delete-on-failure [this dsn table pk keys]
     (update-in this [:fail-updates]
                conj [nil
-                     (and (i/lookup-dsn ds dsn) dsn)
+                     (and (i/get-dsn ds dsn) dsn)
                      table nil pk nil keys]))
   (recover [this ex-class f]
     ;; perform recovery if failed in that way

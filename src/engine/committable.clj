@@ -36,7 +36,7 @@
   environment, based on any previously seen keys for updates."
   [data-sources updates]
   (reduce (fn [env [key dsn table row pk key-gen delete-key]]
-            (let [ds (i/lookup-dsn data-sources dsn)
+            (let [ds (i/get-dsn data-sources dsn)
                   pk (or pk (primary-key ds table))
                   key-gen (or key-gen (key-generator ds table) identity)]
               (if delete-key

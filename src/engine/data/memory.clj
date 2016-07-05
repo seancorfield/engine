@@ -1,12 +1,16 @@
 ;; copyright (c) 2015-2016 Sean Corfield
 
 (ns engine.data.memory
-  "Simple in-memory data store for testing etc.
+  "Simple in-memory data stores.
 
   Querying: (e/query app :path :to :data)
   Updating: (e/update app [:path :to :data] new-value)
   Shortcut: (e/update app :key new-value)
-  Deleting: (e/delete app :key)"
+  Deleting: (e/delete app :key)
+
+  InMemoryDataStore is Queryable and Committable
+  HashMap is just Queryable"
+  (:refer-clojure :exclude [hash-map])
   (:require [engine.committable :as c]
             [engine.queryable :as q]))
 
@@ -44,3 +48,14 @@
   "Return a Queryable/Committable key-based datasource."
   ([]     (in-memory-data-source {}))
   ([seed] (->InMemoryDataStore (atom seed))))
+
+(defrecord HashMap [data]
+
+  q/Queryable
+  (query [this args]
+    (get-in data args)))
+
+(defn hash-map
+  "Return a Queryable key-based datasource."
+  ([m] (->HashMap m))
+  ([k v & kvs] (->HashMap (apply clojure.core/hash-map k v kvs))))
