@@ -13,6 +13,8 @@
     "Run a query and yield that value.")
   (commit! [this]
     "Commit updates/deletes and yield the returned value.")
+  (do-commit! [this]
+    "Commit updates/deletes and yield nil or the failure (if any).")
   (return [this value]
     "Set/replace the result this engine will return on a commit!")
   (state [this]
@@ -31,10 +33,10 @@
   (-delete [this dsn table pk keys]
     "Add this delete to be applied on a successful commit!")
   (fail [this ex]
-    "Switch the engine into failure mode, with the given exception.
+    "Switch the engine into failure mode, with the given expression.
     Any pending updates/deletes are discarded.")
   (commit-and-fail [this ex]
-    "Switch the engine into failure mode, with the given exception.
+    "Switch the engine into failure mode, with the given expression.
     Any pending updates/deletes will still be committed.")
   (-update-on-failure [this key dsn table row pk key-gen]
     "Add this update to be applied on a failed commit!")
@@ -42,8 +44,9 @@
     "Add this update to be applied on a failed commit!")
   (recover [this ex-class f]
     "If the engine has failed with an instance of the specified
-    exception, switch the engine into success mode, and then
-    apply the given function to it."))
+    class (normally an exception, but can be any expression type),
+    switch the engine into success mode, and then apply the given
+    function to the former failure and the recovered engine."))
 
 (defrecord Engine [ds result updates failure fail-updates]
   EngineFlow
@@ -56,13 +59,14 @@
       (q/query (i/get-dsn ds nil) args)))
   ;; commit! can always be done regardless of state
   (commit! [this]
+    (c/commit! ds (if failure fail-updates updates))
     (if failure
-      (do
-        (c/commit! ds fail-updates)
-        (throw failure))
-      (do
-        (c/commit! ds updates)
-        result)))
+      (throw failure)
+      result))
+  (do-commit! [this]
+    (c/commit! ds (if failure fail-updates updates))
+    (when failure
+      failure))
   ;; happy path workflow
   (return [this value]
     (if failure this (assoc this :result value)))
@@ -110,7 +114,7 @@
   (recover [this ex-class f]
     ;; perform recovery if failed in that way
     (if (and failure (instance? ex-class failure))
-      (f (assoc this :failure nil :fail-updates []))
+      (f (assoc this :failure nil :fail-updates []) failure)
       this)))
 
 ;; variadic helper functions

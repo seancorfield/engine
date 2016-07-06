@@ -25,14 +25,14 @@ of the data store. For example, a JDBC data store will return the current state 
 the database which can change over time. A trivial data store that would also exhibit
 this behavior would be a clock/timer or a random number generator.
 
-Since data stores are given to the _engine_ when it is constructed, for testing you 
+Since data stores are given to the _engine_ when it is constructed, for testing you
 could easily pass in a mocked version for easier testing if you needed to do so.
 
 ## Usage
 
 Engine provides a core workflow (as a protocol and a set of helper functions), and a
 couple of data sources to get you up and running. The basic usage model is to create
-all your data sources up front, and then for each "request" or "unit of work" you 
+all your data sources up front, and then for each "request" or "unit of work" you
 create an _engine_ that you pass around your application, and finally you run `commit!`
 on it to apply any updates and get your result out. Or, if the _engine_ is in failure
 mode, you'll get an exception (after it has applied any failure-specific updates).
@@ -45,7 +45,7 @@ mode, you'll get an exception (after it has applied any failure-specific updates
       {:dbtype "mysql" :dbname "mydb" :user "me" :password "secret"}))
     (def ram (m/in-memory-data-source))
 
-Other data source types will be added in the future but it's fairly easy to create your 
+Other data source types will be added in the future but it's fairly easy to create your
 own, based on the `engine.queryable/Queryable` and `engine.committable/Committable`
 protocols.
 
@@ -104,8 +104,15 @@ Here's an example flow with a conditional failure in the middle:
 If an _engine_ is in failure mode, you can still run queries but you cannot set a `return`
 value, nor `transform` the current value, nor add any `update`s or `delete`s -- they are
 all treated as no-ops. You can add `update-on-failure`s and `delete-on-failure`s at any
-time -- in either normal mode or failure mode -- but they will only be applied if the 
+time -- in either normal mode or failure mode -- but they will only be applied if the
 _engine_ is still in failure mode when you `commit!`.
+
+If an _engine_ is in failure mode and you `commit!` the results, the failure value will
+be thrown (so it must be an exception, technically a `java.lang.Throwable`). If you
+are working with non-exception failure values, you can instead call `do-commit!` which
+behaves like `commit!` in terms of updates and deletes to be applied but will yield
+`nil` for success and the failure value itself for a failure. This is useful when
+you are running the _engine_ for side-effects on success and error codes on failure.
 
 You can choose whether entering failure mode should clear any pending updates. It is expected
 that the default will be `fail`, as above, but you can also `commit-and-fail` which leaves any
@@ -119,8 +126,8 @@ You can `recover` from failure mode for specific exceptions:
 
 This resets the _engine_ to normal mode, removes any pending "on failure" updates and
 deletes, and then calls `f` on the _engine_. `f` is assumed to be a workflow-aware function
-that returns an updated _engine_.
-
+that returns an updated _engine_. It is passed the previous failure value, in addition to
+the _engine_.
 
 ## License
 
