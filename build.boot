@@ -1,4 +1,4 @@
-(def version "0.1.0-alpha4")
+(def version "0.1.0-alpha5")
 
 (set-env! :resource-paths #{"src"}
           :dependencies   '[[org.clojure/java.jdbc "0.6.1" :scope "test"]

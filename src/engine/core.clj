@@ -177,6 +177,20 @@
   ([this query-x true-x false-x fail-x]
    `(ifq ~this #(-> % ~query-x) #(-> % ~true-x) #(-> % ~false-x) #(-> % ~fail-x))))
 
+(defmacro condp->
+  "Cascading ifp-> with pred-x true-x pairs."
+  [this pred-x true-x & more]
+  (if (seq more)
+    `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % (condp-> ~@more)))
+    `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x))))
+
+(defmacro condq->
+  "Cascading ifq-> with query-x true-x pairs."
+  [this query-x true-x & more]
+  (if (seq more)
+    `(ifq ~this #(-> % ~query-x) #(-> % ~true-x) #(-> % (condq-> ~@more)))
+    `(ifq ~this #(-> % ~query-x) #(-> % ~true-x))))
+
 (defn update
   "Provide defaults for key (label), dsn, pk, and key-gen."
   ([this table row] (-update this nil nil table row nil nil))

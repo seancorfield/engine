@@ -104,7 +104,9 @@ Here's an example flow with a conditional failure in the middle:
 `ifq` applies a query function to the _engine_ and then calls the appropriate function
 on the _engine_ (for truthy, for falsey, or for failure). `ifp` applies a predicate
 to the current _state_ of the _engine_. There are threaded versions of both to make
-life easier in pipelines.
+life easier in pipelines. In addition there are `condq->` and `condp->` to support
+natural cascades of `ifq` and `ifp` operations (but only with pairs of query/predicate
+and truthy functions).
 
 If an _engine_ is in failure mode, you can still run queries but you cannot set a `return`
 value, nor `transform` the current value, nor add any `update`s or `delete`s -- they are
