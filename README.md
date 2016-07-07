@@ -90,7 +90,7 @@ Here's an example flow with a conditional failure in the middle:
         (e/update-on-failure :logtable {:message "We failed!"})
         ...
         ;; later on we may fail
-        (e/condf #(< (e/query % :value) threshold)
+        (e/ifq #(< (e/query % :value) threshold)
           safe-process ;; called on app
           #(e/fail % (ex-info "Too big!" {:value value})))
         ;; we can continue here because the operations know
@@ -100,6 +100,11 @@ Here's an example flow with a conditional failure in the middle:
         ;; either write to logtable and throw the exception
         ;; or write to sale and return the engine's value
         (e/commit!))
+
+`ifq` applies a query function to the _engine_ and then calls the appropriate function
+on the _engine_ (for truthy, for falsey, or for failure). `ifp` applies a predicate
+to the current _state_ of the _engine_. There are threaded versions of both to make
+life easier in pipelines.
 
 If an _engine_ is in failure mode, you can still run queries but you cannot set a `return`
 value, nor `transform` the current value, nor add any `update`s or `delete`s -- they are

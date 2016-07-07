@@ -23,8 +23,13 @@
   (-transform [this f args]
     "Transform the result this engine will return on a commit!
     This is a pure transform, based on just the result value.")
-  (-condf [this pred-fn true-fn false-fn fail-fn]
-    "If the pred-fn is true of the engine, call true-fn on the
+  (-ifp [this pred-fn true-fn false-fn fail-fn]
+    "If the pred-fn is true of the current state, call true-fn on the
+    engine, else call false-fn on the engine. If the engine was
+    in failure mode, call fail-fn on it instead. Both false-fn
+    and fail-fn can be nil, indicating no action should be taken.")
+  (-ifq [this query-fn true-fn false-fn fail-fn]
+    "If the query-fn is true of the engine, call true-fn on the
     engine, else call false-fn on the engine. If the engine was
     in failure mode, call fail-fn on it instead. Both false-fn
     and fail-fn can be nil, indicating no action should be taken.")
@@ -74,11 +79,18 @@
     (when-not failure result))
   (-transform [this f args]
     (if failure this (apply update-in this [:result] f args)))
-  (-condf [this pred-fn true-fn false-fn fail-fn]
+  (-ifp [this pred-fn true-fn false-fn fail-fn]
     (cond (and failure
                fail-fn)    (fail-fn this)
           failure          this
           (pred-fn result) (true-fn this)
+          false-fn         (false-fn this)
+          :else            this))
+  (-ifq [this query-fn true-fn false-fn fail-fn]
+    (cond (and failure
+               fail-fn)    (fail-fn this)
+          failure          this
+          (query-fn this)  (true-fn this)
           false-fn         (false-fn this)
           :else            this))
   (-update [this key dsn table row pk key-gen]
@@ -135,20 +147,35 @@
   [this f & args]
   (-transform this (partial f this) args))
 
-(defn condf
+(defn ifp
   "Provide defaults for false-fn and fail-fn."
-  ([this pred-fn true-fn] (-condf this pred-fn true-fn nil nil))
-  ([this pred-fn true-fn false-fn] (-condf this pred-fn true-fn false-fn nil))
-  ([this pred-fn true-fn false-fn fail-fn] (-condf this pred-fn true-fn false-fn fail-fn)))
+  ([this pred-fn true-fn] (-ifp this pred-fn true-fn nil nil))
+  ([this pred-fn true-fn false-fn] (-ifp this pred-fn true-fn false-fn nil))
+  ([this pred-fn true-fn false-fn fail-fn] (-ifp this pred-fn true-fn false-fn fail-fn)))
 
-(defmacro condf->
-  "Threaded version of condf."
+(defn ifq
+  "Provide defaults for false-fn and fail-fn."
+  ([this query-fn true-fn] (-ifq this query-fn true-fn nil nil))
+  ([this query-fn true-fn false-fn] (-ifq this query-fn true-fn false-fn nil))
+  ([this query-fn true-fn false-fn fail-fn] (-ifq this query-fn true-fn false-fn fail-fn)))
+
+(defmacro ifp->
+  "Threaded version of ifp."
   ([this pred-x true-x]
-   `(condf ~this #(-> % ~pred-x) #(-> % ~true-x)))
+   `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x)))
   ([this pred-x true-x false-x]
-   `(condf ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % ~false-x)))
+   `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % ~false-x)))
   ([this pred-x true-x false-x fail-x]
-   `(condf ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % ~false-x) #(-> % ~fail-x))))
+   `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % ~false-x) #(-> % ~fail-x))))
+
+(defmacro ifq->
+  "Threaded version of ifq."
+  ([this query-x true-x]
+   `(ifq ~this #(-> % ~query-x) #(-> % ~true-x)))
+  ([this query-x true-x false-x]
+   `(ifq ~this #(-> % ~query-x) #(-> % ~true-x) #(-> % ~false-x)))
+  ([this query-x true-x false-x fail-x]
+   `(ifq ~this #(-> % ~query-x) #(-> % ~true-x) #(-> % ~false-x) #(-> % ~fail-x))))
 
 (defn update
   "Provide defaults for key (label), dsn, pk, and key-gen."
