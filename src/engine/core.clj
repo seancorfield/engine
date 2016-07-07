@@ -179,17 +179,21 @@
 
 (defmacro condp->
   "Cascading ifp-> with pred-x true-x pairs."
-  [this pred-x true-x & more]
-  (if (seq more)
-    `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % (condp-> ~@more)))
-    `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x))))
+  ([this do-x]
+   `(-> ~this ~do-x))
+  ([this pred-x true-x & more]
+   (if (seq more)
+     `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x) #(-> % (condp-> ~@more)))
+     `(ifp ~this #(-> % ~pred-x) #(-> % ~true-x)))))
 
 (defmacro condq->
   "Cascading ifq-> with query-x true-x pairs."
-  [this query-x true-x & more]
-  (if (seq more)
-    `(ifq ~this #(-> % ~query-x) #(-> % ~true-x) #(-> % (condq-> ~@more)))
-    `(ifq ~this #(-> % ~query-x) #(-> % ~true-x))))
+  ([this do-x]
+   `(-> ~this ~do-x))
+  ([this query-x true-x & more]
+   (if (seq more)
+     `(ifq ~this #(-> % ~query-x) #(-> % ~true-x) #(-> % (condq-> ~@more)))
+     `(ifq ~this #(-> % ~query-x) #(-> % ~true-x)))))
 
 (defn update
   "Provide defaults for key (label), dsn, pk, and key-gen."
