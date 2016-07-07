@@ -7,7 +7,7 @@
 (defprotocol DataSourceCollection
   "Collection of data sources by name."
   (find-dsn [this dsn] "Return the datasource or nil.")
-  (get-dsn  [this dsn] "Return the datasource of throw."))
+  (get-dsn  [this dsn] "Return the datasource or throw."))
 
 (defrecord EngineInput [dsns default-dsn]
 
@@ -18,8 +18,8 @@
   (get-dsn [this dsn]
     (or (find-dsn this dsn)
         (throw (ex-info (if dsn
-                          "No default data source"
-                          (str "Unknown data source name: " dsn))
+                          (str "Unknown data source name: " dsn)
+                          "No default data source")
                         {:dsns (keys dsns) :default default-dsn})))))
 
 (defn data-sources
