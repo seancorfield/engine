@@ -225,6 +225,20 @@
   ([this dsn table keys] (-delete-on-failure this dsn table nil keys))
   ([this dsn table pk keys] (-delete-on-failure this dsn table pk keys)))
 
+;; internal helpers
+
+(defn- data-sources
+  "Given a map of data sources and a default data source,
+  return an engine input (and verify all the data sources
+  are queryable or committable)."
+  [dsns default-dsn]
+  (doseq [[k v] dsns]
+    (when-not (or (satisfies? q/Queryable v)
+                  (satisfies? c/Committable v))
+      (throw (ex-info (str "data source " k " is not Queryable or Committable")
+                      {:datasource k :type (type v)}))))
+  (i/->EngineInput dsns default-dsn))
+
 ;; main API function
 
 (defn engine
@@ -232,5 +246,5 @@
   return a workflow engine, ready to do some business!"
   ([dsns] (engine dsns nil))
   ([dsns default-dsn]
-   (->Engine (i/data-sources dsns default-dsn)
+   (->Engine (data-sources dsns default-dsn)
              nil [] nil [])))

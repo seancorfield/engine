@@ -21,9 +21,3 @@
                           (str "Unknown data source name: " dsn)
                           "No default data source")
                         {:dsns (keys dsns) :default default-dsn})))))
-
-(defn data-sources
-  "Given a map of data sources and a default data source,
-  return an engine input."
-  [dsns default-dsn]
-  (->EngineInput dsns default-dsn))

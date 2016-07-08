@@ -3,16 +3,15 @@
 (ns engine.core-test
   (:refer-clojure :exclude [update])
   (:require [expectations :refer [expect in more more-of]]
-            [engine.core :refer :all]
-            [engine.data.memory :as m]))
+            [engine.core :refer :all]))
 
-(expect 1 (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)} :data)
+(expect 1 (-> (engine {:data (hash-map :a 1 :b 2 :c 3)} :data)
               (query :a)))
 
-(expect 2 (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)} :data)
+(expect 2 (-> (engine {:data (hash-map :a 1 :b 2 :c 3)} :data)
               (query :data :b)))
 
-(expect 3 (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)})
+(expect 3 (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
               (query :data :c)))
 
 (expect (more clojure.lang.ExceptionInfo
@@ -20,16 +19,16 @@
                     (memfn getMessage))
               (comp (partial = #{:data}) set :dsns ex-data)
               (comp nil? :default ex-data))
-        (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)})
+        (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
             (query :d)))
 
-(expect true (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)})
+(expect true (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
                  (ifq-> (query :data :a)
                         (return true)
                         (fail (ex-info "" {})))
                  (commit!)))
 
-(expect nil? (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)})
+(expect nil? (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
                  (return "not nil!")
                  (ifq-> (query :data :a)
                         (return true)
@@ -39,7 +38,7 @@
 (expect (more clojure.lang.ExceptionInfo
               (comp (partial = "d is missing") (memfn getMessage))
               (comp (partial = {}) ex-data))
-        (-> (engine {:data (m/hash-map :a 1 :b 2 :c 3)})
+        (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
             (ifq-> (query :data :d)
                    (return true)
                    (fail (ex-info "d is missing" {})))

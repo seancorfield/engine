@@ -49,13 +49,19 @@
   ([]     (in-memory-data-source {}))
   ([seed] (->InMemoryDataStore (atom seed))))
 
-(defrecord HashMap [data]
+;; Queryable can apply to pretty much anything that
+;; can be navigated via get-in
 
-  q/Queryable
+(extend-protocol q/Queryable
+
+  clojure.lang.ILookup
   (query [this args]
-    (get-in data args)))
+    (get-in this args))
 
-(defn hash-map
-  "Return a Queryable key-based datasource."
-  ([m] (->HashMap m))
-  ([k v & kvs] (->HashMap (apply clojure.core/hash-map k v kvs))))
+  clojure.lang.IPersistentSet
+  (query [this args]
+    (get-in this args))
+
+  java.util.Map
+  (query [this args]
+    (get-in this args)))
