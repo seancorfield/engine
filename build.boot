@@ -2,10 +2,10 @@
 
 (set-env! :resource-paths #{"src"}
           :source-paths   #{"test"}
-          :dependencies   '[[expectations "2.1.9-SNAPSHOT"]
+          :dependencies   '[[expectations "2.1.9"]
                             [seancorfield/boot-expectations "1.0.10" :scope "test"]
                             [mysql/mysql-connector-java "5.1.36" :scope "test"]
-                            [org.clojure/java.jdbc "0.6.1" :scope "test"]])
+                            [org.clojure/java.jdbc "0.6.2-alpha1" :scope "test"]])
 
 (require '[seancorfield.boot-expectations :refer [expectations expecting]])
 

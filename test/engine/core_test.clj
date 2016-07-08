@@ -14,11 +14,14 @@
 (expect 3 (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
               (query :data :c)))
 
-(expect (more clojure.lang.ExceptionInfo
-              (comp (partial re-find #"No default data source")
-                    (memfn getMessage))
-              (comp (partial = #{:data}) set :dsns ex-data)
-              (comp nil? :default ex-data))
+(expect (more-of ex
+                 clojure.lang.ExceptionInfo ex
+                 (partial re-find #"No default data source")
+                 (.getMessage ex)
+                 #{:data}
+                 (set (:dsns (ex-data ex)))
+                 nil?
+                 (:default (ex-data ex)))
         (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
             (query :d)))
 
@@ -35,9 +38,10 @@
                         (fail (ex-info "" {})))
                  (do-commit!)))
 
-(expect (more clojure.lang.ExceptionInfo
-              (comp (partial = "d is missing") (memfn getMessage))
-              (comp (partial = {}) ex-data))
+(expect (more-of ex
+                 clojure.lang.ExceptionInfo ex
+                 "d is missing" (.getMessage ex)
+                 {} (ex-data ex))
         (-> (engine {:data (hash-map :a 1 :b 2 :c 3)})
             (ifq-> (query :data :d)
                    (return true)
