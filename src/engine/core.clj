@@ -22,7 +22,13 @@
     If the engine is in failure mode, return nil.")
   (-transform [this f args]
     "Transform the result this engine will return on a commit!
-    This is a pure transform, based on just the result value.")
+    This is a pure transform, based on just the result value.
+    If the engine is in failure mode, do nothing.")
+  (-transform-> [this f args]
+    "Transform the engine using the supplied function and arguments.
+    If the engine is in failure mode, do nothing, otherwise call f
+    on the engine, with the additional arguments (and it should
+    return an updated engine).")
   (-ifp [this pred-fn true-fn false-fn fail-fn]
     "If the pred-fn is true of the current state, call true-fn on the
     engine, else call false-fn on the engine. If the engine was
@@ -79,6 +85,8 @@
     (when-not failure result))
   (-transform [this f args]
     (if failure this (apply update-in this [:result] f args)))
+  (-transform-> [this f args]
+    (if failure this (apply f this args)))
   (-ifp [this pred-fn true-fn false-fn fail-fn]
     (cond (and failure
                fail-fn)    (fail-fn this)
@@ -142,10 +150,9 @@
   (-transform this f args))
 
 (defn transform->
-  "Adapter for 3-arity -transform that threads the engine into
-  the transforming function, as the first argument."
+  "Adapter for 3-arity -transform->."
   [this f & args]
-  (-transform this (partial f this) args))
+  (-transform this f args))
 
 (defn ifp
   "Provide defaults for false-fn and fail-fn."
