@@ -152,7 +152,7 @@
 (defn transform->
   "Adapter for 3-arity -transform->."
   [this f & args]
-  (-transform this f args))
+  (-transform-> this f args))
 
 (defn ifp
   "Provide defaults for false-fn and fail-fn."
