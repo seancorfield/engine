@@ -75,7 +75,8 @@
 
   ([db-spec pk-map default-pk]
    (if (and (keyword? pk-map) (= :with pk-map))
-     (map->JDBCDataStore (assoc default-pk :db-spec db-spec))
+     (map->JDBCDataStore (merge {:default-pk :id}
+                                (assoc default-pk :db-spec db-spec)))
      (jdbc-data-source db-spec pk-map default-pk nil nil)))
 
   ([db-spec pk-map default-pk key-gen-map]
