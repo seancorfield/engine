@@ -1,9 +1,8 @@
-(def version "0.1.0-alpha8")
+(def version "0.1.0-alpha9")
 
 (set-env! :resource-paths #{"src"}
           :source-paths   #{"test"}
-          :dependencies   '[[expectations "2.1.9"]
-                            [seancorfield/boot-expectations "1.0.10" :scope "test"]
+          :dependencies   '[[seancorfield/boot-expectations "1.0.11" :scope "test"]
                             [mysql/mysql-connector-java "5.1.36" :scope "test"]
                             [org.clojure/java.jdbc "0.6.2-alpha1" :scope "test"]])
 

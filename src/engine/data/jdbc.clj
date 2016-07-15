@@ -7,7 +7,7 @@
             [engine.committable :as c]
             [engine.queryable :as q]))
 
-(defrecord JDBCDataStore [db-spec pk-map default-pk key-gen-map]
+(defrecord JDBCDataStore [db-spec pk-map default-pk key-gen-map key-lookup-map]
 
   q/Queryable
   (query [this args]
@@ -45,23 +45,41 @@
   (primary-key [this table]
     (if pk-map
       (get pk-map table default-pk)
-      default-pk)))
+      default-pk))
+
+  (lookup-key [this table]
+    (if (map? key-lookup-map)
+      (get key-lookup-map table)
+      key-lookup-map)))
 
 (defn jdbc-data-source
   "Given a database spec, return a Queryable/Committable
   JDBC-based datasource. Note that it only supports a
   subset of java.jdbc's full API (in particular, no
-  support for options)."
+  support for options).
+  The most common usage patterns are likely to be:
+    (jdbc-data-source db-spec)
+    (jdbc-data-source db-spec :with options-map)
+  where options-map can contain:
+  - :pk-map - a map of table to primary key names
+  - :default-pk - the default primary key name (:id)
+  - :key-gen-map - a map of table to key generator functions
+  - :key-lookup-map - a map of table to key lookup functions"
   ([db-spec]
-   (jdbc-data-source db-spec {} :id nil))
+   (jdbc-data-source db-spec {} :id nil nil))
 
   ([db-spec pk-or-map]
    (if (map? pk-or-map)
-     (jdbc-data-source db-spec pk-or-map :id nil)
-     (jdbc-data-source db-spec nil pk-or-map nil)))
+     (jdbc-data-source db-spec pk-or-map :id nil nil)
+     (jdbc-data-source db-spec nil pk-or-map nil nil)))
 
   ([db-spec pk-map default-pk]
-   (jdbc-data-source db-spec pk-map default-pk nil))
+   (if (and (keyword? pk-map) (= :with pk-map))
+     (map->JDBCDataStore (assoc default-pk :db-spec db-spec))
+     (jdbc-data-source db-spec pk-map default-pk nil nil)))
 
   ([db-spec pk-map default-pk key-gen-map]
-   (->JDBCDataStore db-spec pk-map default-pk key-gen-map)))
+   (->JDBCDataStore db-spec pk-map default-pk key-gen-map nil))
+
+  ([db-spec pk-map default-pk key-gen-map key-lookup-map]
+   (->JDBCDataStore db-spec pk-map default-pk key-gen-map key-lookup-map)))

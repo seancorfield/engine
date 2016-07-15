@@ -42,7 +42,9 @@
 
   (key-generator [this _] nil)
 
-  (primary-key [this _] nil))
+  (primary-key [this _] nil)
+
+  (lookup-key [this _] nil))
 
 (defn in-memory-data-source
   "Return a Queryable/Committable key-based datasource."

@@ -1,4 +1,4 @@
-;; copyright (c) 2015 Sean Corfield
+;; copyright (c) 2016 Sean Corfield
 
 (ns engine.committable
   "Committable protocol for output data sources.
@@ -7,14 +7,16 @@
   (:require [engine.input :as i]))
 
 (defprotocol Committable
-  "An output data source is committable. You can delete! (by key),
-  insert! new data (rows), and update! existing data (rows by key),
-  and it knows how to get the primary key for any given table."
+  "An output data source is committable. You can delete! (by key
+  or key set), insert! new data (rows), and update! existing data
+  (rows by key), it also knows how to get / lookup / generate the
+  primary key for any given table."
   (delete! [this table pk v])
   (insert! [this table row])
   (update! [this table row pk v])
   (key-generator [this table])
-  (primary-key [this table]))
+  (primary-key [this table])
+  (lookup-key [this table]))
 
 (defn lookup-keys
   "For any row fields that are keywords, look up their value
@@ -47,9 +49,13 @@
                   (do
                     (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
                     (cond-> env key (assoc key pkv)))
-                  (let [new-row (key-gen row)
-                        new-pk (insert! ds table (cond-> new-row
-                                                         pk (lookup-keys env)))]
-                    (cond-> env key (assoc key new-pk)))))))
+                  (if-let [found-pk (and pk (lookup-key ds table))]
+                    (do
+                      (update! ds table (lookup-keys row env) pk found-pk)
+                      (cond-> env key (assoc key found-pk)))
+                    (let [new-row (key-gen row)
+                          new-pk (insert! ds table (cond-> new-row
+                                                     pk (lookup-keys env)))]
+                      (cond-> env key (assoc key new-pk))))))))
           {}
           updates))
