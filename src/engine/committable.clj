@@ -40,7 +40,8 @@
   (reduce (fn [env [key dsn table row pk key-gen delete-key]]
             (let [ds (i/get-dsn data-sources dsn)
                   pk (or pk (primary-key ds table))
-                  key-gen (or key-gen (key-generator ds table) identity)]
+                  key-gen (or key-gen (key-generator ds table) identity)
+                  key-find (lookup-key ds table)]
               (if delete-key
                 (do
                   (delete! ds table pk delete-key)
@@ -49,7 +50,7 @@
                   (do
                     (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
                     (cond-> env key (assoc key pkv)))
-                  (if-let [found-pk (and pk (lookup-key ds table))]
+                  (if-let [found-pk (and pk key-find (key-find ds row))]
                     (do
                       (update! ds table (lookup-keys row env) pk found-pk)
                       (cond-> env key (assoc key found-pk)))

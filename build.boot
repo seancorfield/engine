@@ -1,4 +1,4 @@
-(def version "0.1.0-alpha9")
+(def version "0.1.0-alpha10")
 
 (set-env! :resource-paths #{"src"}
           :source-paths   #{"test"}
