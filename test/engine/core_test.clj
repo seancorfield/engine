@@ -1,7 +1,7 @@
 ;; copyright (c) 2016 world singles llc
 
 (ns engine.core-test
-  (:refer-clojure :exclude [update])
+  (:refer-clojure :exclude [apply update])
   (:require [expectations :refer [expect in more more-of]]
             [engine.core :refer :all]))
 

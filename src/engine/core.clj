@@ -2,8 +2,9 @@
 
 (ns engine.core
   "Main API for workflow engine library."
-  (:refer-clojure :exclude [update])
-  (:require [engine.committable :as c]
+  (:refer-clojure :exclude [apply update])
+  (:require [clojure.core :as $]
+            [engine.committable :as c]
             [engine.input :as i]
             [engine.queryable :as q]))
 
@@ -24,8 +25,8 @@
     "Transform the result this engine will return on a commit!
     This is a pure transform, based on just the result value.
     If the engine is in failure mode, do nothing.")
-  (-transform-> [this f args]
-    "Transform the engine using the supplied function and arguments.
+  (-apply [this f args]
+    "Apply the supplied function (and arguments) to the engine.
     If the engine is in failure mode, do nothing, otherwise call f
     on the engine, with the additional arguments (and it should
     return an updated engine).")
@@ -84,9 +85,9 @@
   (state [this]
     (when-not failure result))
   (-transform [this f args]
-    (if failure this (apply update-in this [:result] f args)))
-  (-transform-> [this f args]
-    (if failure this (apply f this args)))
+    (if failure this ($/apply update-in this [:result] f args)))
+  (-apply [this f args]
+    (if failure this ($/apply f this args)))
   (-ifp [this pred-fn true-fn false-fn fail-fn]
     (cond (and failure
                fail-fn)    (fail-fn this)
@@ -149,10 +150,20 @@
   [this f & args]
   (-transform this f args))
 
-(defn transform->
-  "Adapter for 3-arity -transform->."
+(defmacro transform->
+  "Threaded version of transform."
+  [this f-x & fs-x]
+  `(transform ~this #(-> % ~f-x ~@fs-x)))
+
+(defmacro transform->>
+  "Threaded version of transform."
+  [this f-x & fs-x]
+  `(transform ~this #(->> % ~f-x ~@fs-x)))
+
+(defn apply
+  "Adapter for 3-arity -apply."
   [this f & args]
-  (-transform-> this f args))
+  (-apply this f args))
 
 (defn ifp
   "Provide defaults for false-fn and fail-fn."
