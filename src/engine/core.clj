@@ -54,9 +54,9 @@
     "Add this update to be applied on a failed commit!")
   (-delete-on-failure [this dsn table pk keys]
     "Add this update to be applied on a failed commit!")
-  (recover [this ex-class f]
-    "If the engine has failed with an instance of the specified
-    class (normally an exception, but can be any expression type),
+  (recover [this pred-or-ex-class f]
+    "If the engine is in failure mode and either the failure satisfies
+    the supplied predicate or is an instance of the supplied class,
     switch the engine into success mode, and then apply the given
     function to the former failure and the recovered engine."))
 
@@ -132,11 +132,19 @@
                conj [nil
                      (and (i/get-dsn ds dsn) dsn)
                      table nil pk nil keys]))
-  (recover [this ex-class f]
-    ;; perform recovery if failed in that way
-    (if (and failure (instance? ex-class failure))
-      (f (assoc this :failure nil :fail-updates []) failure)
-      this)))
+  (recover [this pred-or-ex-class f]
+    (cond (ifn? pred-or-ex-class)
+          (if (and failure (pred-or-ex-class failure))
+            (f (assoc this :failure nil :fail-updates []) failure)
+            this)
+          (instance? Class pred-or-ex-class)
+          (if (and failure (instance? pred-or-ex-class failure))
+            (f (assoc this :failure nil :fail-updates []) failure)
+            this)
+          :else
+          (throw (ex-info "recover expects a predicate or exception class"
+                          {:pred-or-ex-class pred-or-ex-class
+                           :type (type pred-or-ex-class)})))))
 
 ;; variadic helper functions
 

@@ -131,6 +131,10 @@ You can `recover` from failure mode for specific exceptions:
 
     (e/recover app IllegalArgumentException f)
 
+or using a general predicate:
+
+    (e/recover app some-predicate f)
+
 This resets the _engine_ to normal mode, removes any pending "on failure" updates and
 deletes, and then calls `f` on the _engine_. `f` is assumed to be a workflow-aware function
 that returns an updated _engine_. It is passed the previous failure value, in addition to
