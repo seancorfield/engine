@@ -93,3 +93,9 @@
               (return 42)
               (send "some" "output")
               (commit!))))
+
+(expect :ok
+        (-> (engine {})
+            (return {:a {:b {:c [:bad :ok]}}})
+            (as-> e (return e (state e :a :b :c 1)))
+            (commit!)))
