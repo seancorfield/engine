@@ -2,7 +2,7 @@
 
 (ns engine.core
   "Main API for workflow engine library."
-  (:refer-clojure :exclude [apply update])
+  (:refer-clojure :exclude [apply send update])
   (:require [clojure.core :as $]
             [engine.committable :as c]
             [engine.input :as i]
@@ -225,6 +225,22 @@
   "Provide defaults for key (label), dsn, pk, and key-gen."
   ([this table row] (-update this nil nil table row nil nil))
   ([this dsn table row] (-update this nil dsn table row nil nil))
+  ([this key dsn table row] (-update this key dsn table row nil nil))
+  ([this key dsn table row pk] (-update this key dsn table row pk nil))
+  ([this key dsn table row pk key-gen] (-update this key dsn table row pk key-gen)))
+
+(defn send
+  "Update synonym more suited to insertable-store usage.
+  Does not support key, does support pk and key-gen."
+  ([this table row] (-update this nil nil table row nil nil))
+  ([this dsn table row] (-update this nil dsn table row nil nil))
+  ([this dsn table row pk] (-update this nil dsn table row pk nil))
+  ([this dsn table row pk key-gen] (-update this nil dsn table row pk key-gen)))
+
+(defn create
+  "Update synonym more suited to insertable-store usage.
+  Requires key in all forms!"
+  ([this key table row] (-update this key nil table row nil nil))
   ([this key dsn table row] (-update this key dsn table row nil nil))
   ([this key dsn table row pk] (-update this key dsn table row pk nil))
   ([this key dsn table row pk key-gen] (-update this key dsn table row pk key-gen)))

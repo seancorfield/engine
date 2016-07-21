@@ -1,9 +1,11 @@
 ;; copyright (c) 2016 world singles llc
 
 (ns engine.core-test
-  (:refer-clojure :exclude [apply update])
+  (:refer-clojure :exclude [apply send update])
   (:require [expectations :refer [expect in more more-of]]
-            [engine.core :refer :all]))
+            [engine.committable :as c]
+            [engine.core :refer :all]
+            [engine.data.memory :as m]))
 
 (expect 1 (-> (engine {:data (hash-map :a 1 :b 2 :c 3)} :data)
               (query :a)))
@@ -81,3 +83,13 @@
                      (> 13)
                      (return "> 13"))
             (commit!)))
+
+(expect "some : output\n"
+        (with-out-str
+          (-> (engine {:out (c/insertable-store
+                             [_ label value]
+                             (println label ":" value))}
+                      :out)
+              (return 42)
+              (send "some" "output")
+              (commit!))))
