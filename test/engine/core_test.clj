@@ -84,7 +84,7 @@
                      (return "> 13"))
             (commit!)))
 
-(expect "some : output\n"
+(expect #"some : output\r?\n"
         (with-out-str
           (-> (engine {:out (c/insertable-store
                              [_ label value]
