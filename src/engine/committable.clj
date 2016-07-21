@@ -18,6 +18,47 @@
   (primary-key [this table])
   (lookup-key [this table]))
 
+(defrecord Insertable [context inserter]
+  ;; default implementations either throw an exception...
+  ;; ...or return nil, to make it less onerous to write
+  ;; new Committable resources as instances of Insertable
+  Committable
+  (delete! [this table pk v]
+    (throw (ex-info "delete! not supported on this data source."
+                    {:type (type context) :inserter (type inserter)
+                     :table table :pk pk :v v})))
+
+  (insert! [this table row]
+    (inserter context table row))
+
+  (update! [this table row pk v]
+    (throw (ex-info "update! not supported on this data source."
+                    {:type (type context) :inserter (type inserter)
+                     :table table :row-keys (keys row) :pk pk :v v})))
+
+  (key-generator [this table] nil)
+  (primary-key [this table] nil)
+  (lookup-key [this table] nil))
+
+(defn insertable-store*
+  "Given an insertion function, or a context (probably a Component)
+  and an insertion function, return an Insertable data store."
+  ([inserter] (insertable-store* nil inserter))
+  ([context inserter] (->Insertable context inserter)))
+
+(defmacro insertable-store
+  "Usage:
+  (insertable-store [this table row] body)
+  or:
+  (insertable-store context [this table row] body)
+  Returns an Insertable."
+  [params & body]
+  (if (vector? params)
+    `(insertable-store* (fn ~params ~@body))
+    (let [context params
+          [params & body] body]
+      `(insertable-store* ~context (fn ~params ~@body)))))
+
 (defn lookup-keys
   "For any row fields that are keywords, look up their value
   in the environment. This allows updates to refer to keys
