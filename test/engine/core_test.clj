@@ -93,3 +93,25 @@
               (return 42)
               (send "some" "output")
               (commit!))))
+
+(expect 43
+        (-> (engine {})
+            (return 42)
+            (apply #(transform % inc))
+            (commit!)))
+
+(expect 52
+        (-> (engine {})
+            (return 42)
+            (apply (fn [e a b c d]
+                     (transform e #(+ % a b c d)))
+                   1 2 [3 4])
+            (commit!)))
+
+(expect 52
+        (-> (engine {})
+            (return 42)
+            (apply (fn [e a b c d]
+                     (transform e #(+ % a b c d)))
+                   [1 2 3 4])
+            (commit!)))

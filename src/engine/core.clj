@@ -87,7 +87,7 @@
   (-transform [this f args]
     (if failure this ($/apply update-in this [:result] f args)))
   (-apply [this f args]
-    (if failure this ($/apply f this args)))
+    (if failure this ($/apply $/apply f this args)))
   (-ifp [this pred-fn true-fn false-fn fail-fn]
     (cond (and failure
                fail-fn)    (fail-fn this)
@@ -170,8 +170,10 @@
 
 (defn apply
   "Adapter for 3-arity -apply."
-  [this f & args]
-  (-apply this f args))
+  ([this f]
+   (-apply this f [[]]))
+  ([this f & args]
+   (-apply this f args)))
 
 (defn ifp
   "Provide defaults for false-fn and fail-fn."
