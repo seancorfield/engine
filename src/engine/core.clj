@@ -18,8 +18,10 @@
     "Commit updates/deletes and yield nil or the failure (if any).")
   (return [this value]
     "Set/replace the result this engine will return on a commit!")
-  (state [this]
+  (-state [this path]
     "Yield the current state -- the result that would be returned.
+    If path is not nil, assume state is navigable via that path and
+    return just that part.
     If the engine is in failure mode, return nil.")
   (-transform [this f args]
     "Transform the result this engine will return on a commit!
@@ -82,8 +84,9 @@
   ;; happy path workflow
   (return [this value]
     (if failure this (assoc this :result value)))
-  (state [this]
-    (when-not failure result))
+  (-state [this path]
+    (when-not failure
+      (if path (get-in result path) result)))
   (-transform [this f args]
     (if failure this ($/apply update-in this [:result] f args)))
   (-apply [this f args]
@@ -152,6 +155,11 @@
   "Adapter for 2-arity -query."
   [this & args]
   (-query this args))
+
+(defn state
+  "Adapter for 2-arity -state."
+  [this & args]
+  (-state this args))
 
 (defn transform
   "Adapter for 3-arity -transform."

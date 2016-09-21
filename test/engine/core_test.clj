@@ -84,7 +84,7 @@
                      (return "> 13"))
             (commit!)))
 
-(expect "some : output\n"
+(expect #"some : output\r?\n"
         (with-out-str
           (-> (engine {:out (c/insertable-store
                              [_ label value]
@@ -114,4 +114,10 @@
             (apply (fn [e a b c d]
                      (transform e #(+ % a b c d)))
                    [1 2 3 4])
+            (commit!)))
+
+(expect :ok
+        (-> (engine {})
+            (return {:a {:b {:c [:bad :ok]}}})
+            (as-> e (return e (state e :a :b :c 1)))
             (commit!)))
