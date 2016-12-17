@@ -13,7 +13,9 @@
 
   DataSourceCollection
   (find-dsn [this dsn]
-    (get dsns (or dsn default-dsn)))
+    (if (fn? dsn)
+      dsn
+      (get dsns (or dsn default-dsn))))
 
   (get-dsn [this dsn]
     (or (find-dsn this dsn)

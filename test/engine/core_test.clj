@@ -94,6 +94,14 @@
               (send "some" "output")
               (commit!))))
 
+(expect #"some : output\r?\n"
+        (with-out-str
+          (-> (engine {})
+              (return 42)
+              (send (fn [env]
+                      (println "some" ":" "output")))
+              (commit!))))
+
 (expect 43
         (-> (engine {})
             (return 42)

@@ -79,25 +79,29 @@
   environment, based on any previously seen keys for updates."
   [data-sources updates]
   (reduce (fn [env [key dsn table row pk key-gen delete-key]]
-            (let [ds (i/get-dsn data-sources dsn)
-                  pk (or pk (primary-key ds table))
-                  key-gen (or key-gen (key-generator ds table) identity)
-                  key-find (lookup-key ds table)]
-              (if delete-key
-                (do
-                  (delete! ds table pk delete-key)
-                  env)
-                (if-let [pkv (and pk (map? row) (get row pk))]
+            (if (fn? dsn)
+              (if key
+                (assoc env key (dsn env))
+                (do (dsn env) env))
+              (let [ds (i/get-dsn data-sources dsn)
+                    pk (or pk (primary-key ds table))
+                    key-gen (or key-gen (key-generator ds table) identity)
+                    key-find (lookup-key ds table)]
+                (if delete-key
                   (do
-                    (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
-                    (cond-> env key (assoc key pkv)))
-                  (if-let [found-pk (and pk key-find (key-find ds row))]
+                    (delete! ds table pk delete-key)
+                    env)
+                  (if-let [pkv (and pk (map? row) (get row pk))]
                     (do
-                      (update! ds table (lookup-keys row env) pk found-pk)
-                      (cond-> env key (assoc key found-pk)))
-                    (let [new-row (key-gen row)
-                          new-pk (insert! ds table (cond-> new-row
-                                                     pk (lookup-keys env)))]
-                      (cond-> env key (assoc key new-pk))))))))
+                      (update! ds table (lookup-keys (dissoc row pk) env) pk pkv)
+                      (cond-> env key (assoc key pkv)))
+                    (if-let [found-pk (and pk key-find (key-find ds row))]
+                      (do
+                        (update! ds table (lookup-keys row env) pk found-pk)
+                        (cond-> env key (assoc key found-pk)))
+                      (let [new-row (key-gen row)
+                            new-pk (insert! ds table (cond-> new-row
+                                                       pk (lookup-keys env)))]
+                        (cond-> env key (assoc key new-pk)))))))))
           {}
           updates))

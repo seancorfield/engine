@@ -233,6 +233,7 @@
 
 (defn update
   "Provide defaults for key (label), dsn, pk, and key-gen."
+  ([this thunk] (-update this nil thunk nil nil nil nil))
   ([this table row] (-update this nil nil table row nil nil))
   ([this dsn table row] (-update this nil dsn table row nil nil))
   ([this key dsn table row] (-update this key dsn table row nil nil))
@@ -242,6 +243,7 @@
 (defn send
   "Update synonym more suited to insertable-store usage.
   Does not support key, does support pk and key-gen."
+  ([this thunk] (-update this nil thunk nil nil nil nil))
   ([this table row] (-update this nil nil table row nil nil))
   ([this dsn table row] (-update this nil dsn table row nil nil))
   ([this dsn table row pk] (-update this nil dsn table row pk nil))
@@ -250,6 +252,7 @@
 (defn create
   "Update synonym more suited to insertable-store usage.
   Requires key in all forms!"
+  ([this key thunk] (-update this key thunk nil nil nil nil))
   ([this key table row] (-update this key nil table row nil nil))
   ([this key dsn table row] (-update this key dsn table row nil nil))
   ([this key dsn table row pk] (-update this key dsn table row pk nil))
