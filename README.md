@@ -1,5 +1,13 @@
 # engine [![Join the chat at https://gitter.im/seancorfield/engine](https://badges.gitter.im/seancorfield/engine.svg)](https://gitter.im/seancorfield/engine?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+This was an interesting thought experiment based on the idea that I could completely separate data sources, business logic, and data sinks. It introduced two abstractions: Queryable and Committable. A Queryable could be queried in some arbitrary way: it could be a JDBC data source, a hash map, etc. A `query` function allowed the business logic to run a query against any named input. A Committable could be given a description of an update (an insert or an actual update) that it knew how to execute. An `update` function allowed the business logic to signal that it needed an update committed after successful execution. When I ran the concept past a few people on Slack, they mostly opined that such abstractions were too abstract and that you couldn't create a realistic, usable abstraction that would work effectively over a wide range of data sinks.
+
+Having used Engine at World Singles for a particular use case (validating and updating various member profile attributes as part of an API), I'm inclined to agree with those people: Engine proved verbose to use and isolating all mutations into things that looked like data sinks was quite painful (including creating one-off URL tokens that were needed by other mutations, such as sending emails). In addition, the core concept of running an "Engine request" through your entire business logic produced monadic code that was very hard to read and non-idiomatic, from a Clojure point of view. We've recently rewritten that code to use "native" Clojure to query data sources and access hash maps etc, and to create a simple pipeline of closures to be executed on success. The result is much simpler, more idiomatic code (which could still stand a bit more simplification but is already an improvement on Engine-based code).
+
+That's why I'm sunsetting Engine before it gets any traction. "So long, and thanks for all the fish!", as they say.
+
+# The Original README
+
 A Clojure library designed to help separate business logic from
 persistence by maintaining a strict query -> logic -> updates
 workflow across your application.
